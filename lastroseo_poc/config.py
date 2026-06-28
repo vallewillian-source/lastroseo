@@ -5,7 +5,7 @@ from pathlib import Path
 
 import yaml
 
-from lastroseo.models import BrandGuide
+from lastroseo_poc.models import BrandGuide
 
 _ENV_PREFIX = "LASTROSEO_"
 
@@ -67,7 +67,7 @@ def load_product_doc(path: str | Path | None = None) -> "ProductInfo | None":
       - ``cta`` auto-generated from name + description
       - ``raw_markdown`` — full file content for LLM context
     """
-    from lastroseo.models import ProductInfo
+    from lastroseo_poc.models import ProductInfo
 
     if not path:
         return None

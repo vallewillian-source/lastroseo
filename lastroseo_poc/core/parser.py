@@ -7,7 +7,7 @@ import httpx
 from selectolax.parser import HTMLParser
 
 if TYPE_CHECKING:
-    from lastroseo.models import CompetitorData
+    from lastroseo_poc.models import CompetitorData
 
 
 async def parse_urls(urls: list[str], max_concurrent: int = 5) -> list["CompetitorData"]:
@@ -16,7 +16,7 @@ async def parse_urls(urls: list[str], max_concurrent: int = 5) -> list["Competit
     Returns a ``CompetitorData`` per URL with headings, word count,
     media counts, and cleaned text content.
     """
-    from lastroseo.models import CompetitorData
+    from lastroseo_poc.models import CompetitorData
 
     semaphore = asyncio.Semaphore(max_concurrent)
 
@@ -40,7 +40,7 @@ async def parse_urls(urls: list[str], max_concurrent: int = 5) -> list["Competit
 
 async def _parse_single(url: str) -> "CompetitorData":
     """Fetch one URL and extract all structured data."""
-    from lastroseo.models import CompetitorData
+    from lastroseo_poc.models import CompetitorData
 
     headers = {
         "User-Agent": (

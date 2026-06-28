@@ -3,7 +3,7 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "lastroseo"
+name = "lastroseo-poc"
 version = "0.1.0"
 description = "CLI para briefing SEO e geração de artigos via LLM"
 readme = "PLAN.md"
@@ -33,7 +33,7 @@ dependencies = [
 ]
 
 [project.scripts]
-lastroseo = "lastroseo.cli:app"
+lastroseo-poc = "lastroseo_poc.cli:app"
 
 [project.optional-dependencies]
 dev = [

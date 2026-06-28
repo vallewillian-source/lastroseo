@@ -8,7 +8,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from lastroseo.models import BrandGuide, Briefing, StoryArc
+    from lastroseo_poc.models import BrandGuide, Briefing, StoryArc
 
 
 SYSTEM_PROMPT = """\
@@ -461,7 +461,7 @@ def _build_detail_paragraph(
 
 def _default_arc(briefing: "Briefing") -> "StoryArc":
     """Minimal arc when no StoryArc is provided."""
-    from lastroseo.models import StoryArc
+    from lastroseo_poc.models import StoryArc
 
     return StoryArc(
         angle=f"O que realmente importa sobre {briefing.keyword}",

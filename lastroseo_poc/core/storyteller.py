@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from lastroseo.models import BrandGuide, Briefing, StoryArc
+    from lastroseo_poc.models import BrandGuide, Briefing, StoryArc
 
 STORYTELLER_PROMPT = """\
 You are an expert editorial strategist and narrative designer. Your job is to
@@ -83,7 +83,7 @@ async def build_story_arc(
     toward the product's value proposition — but NEVER mention the product
     directly in the arc itself.
     """
-    from lastroseo.models import StoryArc
+    from lastroseo_poc.models import StoryArc
 
     if not api_key:
         return _heuristic_arc(briefing, brand_guide, product_info)
@@ -169,7 +169,7 @@ def _heuristic_arc(
     Uses the briefing's proposed_structure, PAA questions, and content gaps
     to construct a logical narrative.
     """
-    from lastroseo.models import StoryArc
+    from lastroseo_poc.models import StoryArc
 
     keyword = briefing.keyword
 

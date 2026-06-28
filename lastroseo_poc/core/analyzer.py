@@ -4,7 +4,7 @@ from collections import Counter
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from lastroseo.models import Briefing, CompetitorData
+    from lastroseo_poc.models import Briefing, CompetitorData
 
 
 def build_briefing(
@@ -20,7 +20,7 @@ def build_briefing(
     3. Search intent classification (simple heuristic)
     4. Content gap detection (PAA vs extracted headings)
     """
-    from lastroseo.models import Briefing
+    from lastroseo_poc.models import Briefing
 
     if not competitors:
         return Briefing(keyword=keyword, search_intent="informational")

@@ -15,15 +15,15 @@ from rich.prompt import Prompt
 # Load .env from project root (or current directory)
 load_dotenv()
 
-from lastroseo.config import get_api_keys, load_brand_guide, load_product_doc
-from lastroseo.core.analyzer import build_briefing
-from lastroseo.core.parser import parse_urls
-from lastroseo.core.serp import search_serp
-from lastroseo.core.storyteller import build_story_arc
-from lastroseo.core.writer import generate_fallback_article, write_article
+from lastroseo_poc.config import get_api_keys, load_brand_guide, load_product_doc
+from lastroseo_poc.core.analyzer import build_briefing
+from lastroseo_poc.core.parser import parse_urls
+from lastroseo_poc.core.serp import search_serp
+from lastroseo_poc.core.storyteller import build_story_arc
+from lastroseo_poc.core.writer import generate_fallback_article, write_article
 
 app = typer.Typer(
-    name="lastroseo",
+    name="lastroseo-poc",
     help="🚀 LastroSEO — CLI para briefing SEO e geração de artigos via LLM",
     add_completion=False,
 )
@@ -161,7 +161,7 @@ def run(
             console.print(
                 "[yellow]⚠️  Brand guide não encontrado. Usando valores padrão.[/yellow]"
             )
-            from lastroseo.models import BrandGuide
+            from lastroseo_poc.models import BrandGuide
 
             brand_guide = BrandGuide(
                 tone="professional",
@@ -256,7 +256,7 @@ def run(
 @app.command()
 def info():
     """Display package info and service status."""
-    from lastroseo import __version__
+    from lastroseo_poc import __version__
 
     keys = get_api_keys()
 

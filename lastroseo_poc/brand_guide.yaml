@@ -1,0 +1,15 @@
+# LastroSEO — Brand Guide
+# Configure tom de voz, persona e regras editoriais.
+# Carregado automaticamente pelo CLI.
+
+tone: "professional"
+persona: "SEO expert"
+
+rules:
+  - "Use linguagem clara e direta"
+  - "Escreva em português brasileiro"
+  - "Estruture o texto com H2 e H3 bem definidos"
+  - "Inclua exemplos práticos sempre que possível"
+  - "Evite jargões desnecessários"
+  - "Mantenha parágrafos curtos (máx. 4 linhas)"
+  - "Sempre inclua uma seção de FAQ ao final"
