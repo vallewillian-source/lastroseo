@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lastroseo"
+version = "0.1.0"
+description = "CLI para briefing SEO e geração de artigos via LLM"
+readme = "PLAN.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "LastroSEO Team"}]
+keywords = ["seo", "cli", "llm", "serp", "content"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP :: Indexing/Search",
+]
+
+dependencies = [
+    "typer>=0.12.0",
+    "rich>=13.0.0",
+    "httpx>=0.27.0",
+    "selectolax>=0.3.27",
+    "readability-lxml>=0.8.1",
+    "scikit-learn>=1.5.0",
+    "litellm>=1.40.0",
+    "pydantic>=2.0.0",
+    "pyyaml>=6.0.0",
+]
+
+[project.scripts]
+lastroseo = "lastroseo.cli:app"
+
+[project.optional-dependencies]
+dev = [
+    "mypy>=1.10.0",
+    "ruff>=0.4.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+exclude = ["*.egg-info"]

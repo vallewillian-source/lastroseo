@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtualenv
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Secrets
+.env
+
+# Output
+out/
+
+# Docker
+searxng/
+
+# macOS
+.DS_Store
+
+# Project-specific
+lastroseo/out/
+lastroseo/brand_guide.yaml
