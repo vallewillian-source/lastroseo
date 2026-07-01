@@ -2,6 +2,54 @@
 
 > **Implemented architecture. Reflects what is running, not plans.**
 
+## Desktop environment
+
+| Item | Detail |
+|------|--------|
+| **Host** | Ubuntu desktop `192.168.0.23` |
+| **SSH** | `ssh willianvalle@192.168.0.23` (key-based, no password) |
+| **Project path** | `/home/willianvalle/lastroseo/v1` |
+| **Local workspace** | `/Users/vallewillian/workspace/lastro-seo/v1` (Mac) |
+| **Ollama** | Runs on **host** (not container), model `gemma4:e4b` |
+| **Ollama URL from containers** | `http://172.17.0.1:11434` (Docker host gateway) |
+| **Docker** | Engine + Compose v2 (`docker compose`, not `docker-compose`) |
+| **DB credentials** | `lastroseo` / `secret` / `lastroseo` (dev only) |
+
+### Ollama setup (desktop)
+
+```bash
+# Install (once)
+curl -fsSL https://ollama.com/install.sh | sh
+ollama pull gemma4:e4b
+
+# Verify
+ollama list                          # should list gemma4:e4b
+curl http://localhost:11434/api/tags # API check
+
+# Make accessible from Docker containers:
+sudo systemctl edit ollama
+# Add: Environment="OLLAMA_HOST=0.0.0.0"
+sudo systemctl restart ollama
+```
+
+### Network map
+
+```
+Desktop 192.168.0.23
+├── Ollama (host)     :11434
+└── Docker
+    ├── postgres      :5433 → :5432
+    ├── redis         :6380 → :6379
+    ├── searxng       :8083 → :8080
+    ├── gateway-svc   :8085 → :8080
+    ├── frontend      :3011 → :80   (nginx → gateway:8080)
+    ├── google-svc    (Asynq worker, no port)
+    ├── crawler-svc   (Asynq worker)
+    ├── extractor-svc (Asynq worker + Ollama)
+    ├── analytics-svc (Asynq worker + Ollama)
+    └── storage-svc   :8082 → :8080
+```
+
 ## Architecture
 
 ```
@@ -55,7 +103,7 @@ Six Go microservices + React frontend, Docker Compose on Ubuntu desktop.
 
 | Service | Type | Doc |
 |---------|------|-----|
-| `gateway-svc` | REST API | `services/gateway/AGENTS.md` |
+| `gateway-svc` | REST API + Competitor Inspect (Gemma4) | `services/gateway/AGENTS.md` |
 | `google-svc` | Asynq worker | `services/google-fetcher/AGENTS.md` |
 | `crawler-svc` | Asynq worker | `services/crawler/AGENTS.md` |
 | `extractor-svc` | Asynq worker | `services/extractor/AGENTS.md` |
@@ -74,6 +122,7 @@ Six Go microservices + React frontend, Docker Compose on Ubuntu desktop.
 7. extractor-svc → regex HTML parse + Gemma topic extraction
 8. analytics-svc → Jaccard clustering + regex/LLM intent + Gemma naming + gap detection
 9. Frontend polls: keywords, SERP, clusters, gaps
+10. Frontend: Inspect Keywords → Gateway fetches competitor HTML → Gemma4 extracts keywords
 ```
 
 ## Ports
@@ -85,15 +134,33 @@ Six Go microservices + React frontend, Docker Compose on Ubuntu desktop.
 | PostgreSQL | 5433 | 5432 |
 | Redis | 6380 | 6379 |
 | SearXNG | 8083 | 8080 |
+| Ollama (host) | — | 11434 |
 
 ## Quick start
 
 ```bash
-cp .env.example .env
-docker-compose up -d                         # infra (postgres, redis, searxng)
-docker-compose --profile app up -d           # all app services + frontend
-open http://192.168.0.23:3011                # frontend
-curl http://192.168.0.23:8085/health         # API
+# ---- Desktop (192.168.0.23) ----
+
+# 1. Garantir Ollama rodando no host
+ollama list
+sudo systemctl status ollama
+
+# 2. Infra
+cd /home/willianvalle/lastroseo/v1
+cp .env.example .env   # só precisa se não existir
+docker compose up -d    # postgres, redis, searxng
+
+# 3. Apps (aguardar infra healthy)
+docker compose --profile app build --network host
+docker compose --profile app up -d
+
+# 4. Verificar
+curl http://localhost:8085/health
+curl http://localhost:3011        # frontend
+
+# ---- Local (Mac) ----
+# Acessar via browser: http://192.168.0.23:3011
+# SSH para debug: ssh willianvalle@192.168.0.23
 ```
 
 ## Dev rules
@@ -105,3 +172,60 @@ curl http://192.168.0.23:8085/health         # API
 5. Build with `--network host` to bypass Docker DNS issues
 6. DNS: services use `8.8.8.8, 1.1.1.1` (no systemd-resolved)
 7. Ollama host: `host.docker.internal:11434` → Docker `extra_hosts` needed on Linux
+
+## Deploy & Debug
+
+### Rebuild de um serviço específico
+
+```bash
+ssh willianvalle@192.168.0.23
+cd /home/willianvalle/lastroseo/v1
+
+# Gateway (exemplo)
+docker compose --profile app build --network host gateway-svc
+docker compose --profile app up -d gateway-svc
+
+# Frontend
+cd frontend && npm run build       # localmente ou no desktop
+docker compose --profile app build --network host frontend
+docker compose --profile app up -d frontend
+```
+
+### Logs
+
+```bash
+docker compose logs -f --tail=50 gateway-svc
+docker compose logs -f --tail=50 extractor-svc
+docker compose logs -f --tail=50 analytics-svc
+```
+
+### Checar saúde
+
+```bash
+curl http://192.168.0.23:8085/health       # gateway
+curl http://192.168.0.23:8085/services     # PG + Redis + SearXNG
+curl http://192.168.0.23:8083/health       # SearXNG
+curl http://192.168.0.23:11434/api/tags    # Ollama + modelos
+docker compose ps                           # containers
+```
+
+### Problemas comuns
+
+| Sintoma | Causa provável | Solução |
+|---------|---------------|---------|
+| `gemma: connect failed` | Ollama não aceita conexões externas | `OLLAMA_HOST=0.0.0.0` no systemd |
+| `gemma: status 404 model not found` | Modelo não baixado | `ollama pull gemma4:e4b` |
+| `SERP: 0 resultados` | SearXNG bloqueado/offline | `curl http://192.168.0.23:8083/health` |
+| `Asynq: NOBLIST` | Redis com chaves pendentes | `docker compose restart redis` |
+| `fetch failed: context deadline exceeded` | Site lento/bloqueado | Aumentar timeout em `competitors.go` |
+| Frontend branco | JS quebrou no build | `npm run build` novamente, limpar cache |
+| `dial tcp: lookup` nos containers | DNS do Docker quebrou | Containers usam `8.8.8.8, 1.1.1.1` |
+
+### Notas sobre builds
+
+- **Sempre use `--network host`** no build: o Docker na versão usada tem problemas de DNS em bridge network.
+- Imagens Go usam `FROM scratch` (~8 MB), então precisam de `CGO_ENABLED=0`.
+- O `go.work` na raiz de `v1/` linka todos os módulos locais (`storage`, `pkg/*`, serviços).
+- Ao alterar `storage/` ou `pkg/*`, rebuild de **todos** os serviços que os importam.
+- Frontend: build local (`npm run build`) gera `dist/`, o Dockerfile só copia esse diretório.
+- `.env` **nunca** deve ser commitado. O `.env.example` é o template.
