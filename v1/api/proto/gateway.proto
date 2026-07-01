@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+package lastroseo.gateway.v1;
+
+option go_package = "github.com/lastroseo/api/proto/gateway/v1";
+
+service GatewayService {
+  rpc CreateProject(CreateProjectRequest) returns (CreateProjectResponse);
+  rpc GetProject(GetProjectRequest) returns (GetProjectResponse);
+  rpc AddSeedKeywords(AddSeedKeywordsRequest) returns (AddSeedKeywordsResponse);
+  rpc ListKeywords(ListKeywordsRequest) returns (ListKeywordsResponse);
+  rpc GetJobStatus(GetJobStatusRequest) returns (GetJobStatusResponse);
+}
+
+message CreateProjectRequest {
+  string name = 1;
+  string business_desc = 2;
+  string target_audience = 3;
+  repeated string seed_keywords = 4;
+}
+
+message CreateProjectResponse {
+  string project_id = 1;
+  string status = 2;
+}
+
+message GetProjectRequest {
+  string project_id = 1;
+}
+
+message GetProjectResponse {
+  string id = 1;
+  string name = 2;
+  string business_desc = 3;
+  string target_audience = 4;
+  repeated string seed_keywords = 5;
+  string created_at = 6;
+}
+
+message AddSeedKeywordsRequest {
+  string project_id = 1;
+  repeated string keywords = 2;
+}
+
+message AddSeedKeywordsResponse {
+  string job_id = 1;
+  string status = 2;
+}
+
+message ListKeywordsRequest {
+  string project_id = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+  string filter = 4;
+}
+
+message ListKeywordsResponse {
+  repeated Keyword keywords = 1;
+  string next_page_token = 2;
+  int32 total_size = 3;
+}
+
+message Keyword {
+  string id = 1;
+  string keyword = 2;
+  bool is_seed = 3;
+  string cluster_name = 4;
+  string intent = 5;
+  KeywordMetrics metrics = 6;
+}
+
+message KeywordMetrics {
+  int32 volume = 1;
+  int32 cpc_cents = 2;
+  int32 competition = 3;
+  double heat_score = 4;
+}
+
+message GetJobStatusRequest {
+  string job_id = 1;
+}
+
+message GetJobStatusResponse {
+  string job_id = 1;
+  string status = 2;
+  string error = 3;
+  string result = 4;
+}

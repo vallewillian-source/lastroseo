@@ -1,0 +1,17 @@
+go 1.25.0
+
+use (
+	./pkg/batchwriter
+	./pkg/bloom
+	./pkg/kdtree
+	./pkg/llm
+	./pkg/roaring
+	./pkg/trie
+	./pkg/unionfind
+	./services/analytics
+	./services/crawler
+	./services/extractor
+	./services/gateway
+	./services/google-fetcher
+	./services/storage
+)

@@ -1,0 +1,32 @@
+# Node
+node_modules/
+
+# Build output
+frontend/dist/
+
+# Env (secrets)
+.env
+
+# Go build binaries (compiled locally)
+services/*/gateway-svc
+services/*/storage-svc
+analytics
+crawler
+extractor
+gateway
+google-fetcher
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+
+# macOS
+.DS_Store
+
+# Reasonix
+.reasonix/
+
+# IDE
+.vscode/
+.idea/

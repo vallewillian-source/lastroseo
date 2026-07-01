@@ -1,0 +1,39 @@
+# Analytics & Clustering Configuration
+postgres:
+  host: "localhost"
+  user: "lastroseo"
+  password: "secret"
+  dbname: "lastroseo"
+
+redis:
+  addr: "localhost:6379"
+
+ollama:
+  url: "http://localhost:11434"
+  fast_model: "gemma2:2b"
+  deep_model: "gemma2:27b"
+
+deepseek:
+  api_key: ""
+  model: "deepseek-chat"
+  fallback_threshold: 0.05
+
+clustering:
+  embedding_dim: 384
+  similarity_threshold: 0.85
+  min_cluster_size: 3
+
+intent:
+  heuristics_first: true
+  rules:
+    - pattern: "comprar|preço|barato|promoção"
+      intent: "transacional"
+    - pattern: "como|o que é|guia|tutorial"
+      intent: "informacional"
+    - pattern: "vs|versus|qual|comparativo"
+      intent: "comercial"
+    - pattern: "login|site|portal|oficial"
+      intent: "navegacional"
+
+heat_tracking:
+  window_size: 8

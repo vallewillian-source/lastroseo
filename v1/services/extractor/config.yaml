@@ -1,0 +1,22 @@
+# Content Extractor Configuration
+postgres:
+  host: "localhost"
+  user: "lastroseo"
+  password: "secret"
+  dbname: "lastroseo"
+
+redis:
+  addr: "localhost:6379"
+
+ollama:
+  url: "http://localhost:11434"
+  model: "gemma2:2b"
+
+extraction:
+  max_features: 50
+  heading_boost: 2.0
+  user_agent: "LastroSEO-Extractor/1.0"
+
+http:
+  timeout_seconds: 15
+  max_redirects: 3

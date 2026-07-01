@@ -1,0 +1,222 @@
+services:
+  # ── Infrastructure ──────────────────────────────────────────
+
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    container_name: lastroseo-postgres
+    environment:
+      POSTGRES_USER: lastroseo
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: lastroseo
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lastroseo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: lastroseo-redis
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  searxng:
+    image: searxng/searxng:latest
+    container_name: lastroseo-searxng
+    ports:
+      - "8083:8080"
+    volumes:
+      - ./searxng:/etc/searxng
+    environment:
+      - SEARXNG_BASE_URL=http://localhost:8080/
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    restart: unless-stopped
+
+  # ── Application Services ────────────────────────────────────
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: lastroseo-frontend
+    ports:
+      - "3011:80"
+    depends_on:
+      - gateway-svc
+    profiles: ["app"]
+    restart: unless-stopped
+
+  storage-svc:
+    build:
+      context: ./services/storage
+      dockerfile: Dockerfile
+    container_name: lastroseo-storage
+    ports:
+      - "8082:8080"
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=lastroseo
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=lastroseo
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles: ["app"]
+    restart: unless-stopped
+
+  gateway-svc:
+    build:
+      context: .
+      dockerfile: ./services/gateway/Dockerfile
+    container_name: lastroseo-gateway
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    ports:
+      - "8085:8080"
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=lastroseo
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=lastroseo
+      - REDIS_ADDR=redis:6379
+      - SEARXNG_URL=http://searxng:8080
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=lastroseo
+      - REDIS_ADDR=redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    profiles: ["app"]
+    restart: unless-stopped
+
+  google-svc:
+    build:
+      context: .
+      dockerfile: ./services/google-fetcher/Dockerfile
+    container_name: lastroseo-google
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=lastroseo
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=lastroseo
+      - REDIS_ADDR=redis:6379
+      - GOOGLE_ADS_DEVELOPER_TOKEN=${GOOGLE_ADS_DEVELOPER_TOKEN:-}
+      - GOOGLE_ADS_CLIENT_ID=${GOOGLE_ADS_CLIENT_ID:-}
+      - GOOGLE_ADS_CLIENT_SECRET=${GOOGLE_ADS_CLIENT_SECRET:-}
+      - GOOGLE_ADS_REFRESH_TOKEN=${GOOGLE_ADS_REFRESH_TOKEN:-}
+      - GOOGLE_ADS_CUSTOMER_ID=${GOOGLE_ADS_CUSTOMER_ID:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    profiles: ["app"]
+    restart: unless-stopped
+
+  crawler-svc:
+    build:
+      context: .
+      dockerfile: ./services/crawler/Dockerfile
+    container_name: lastroseo-crawler
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_USER=lastroseo
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=lastroseo
+      - REDIS_ADDR=redis:6379
+      - SEARXNG_URL=http://searxng:8080
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      searxng:
+        condition: service_started
+    profiles: ["app"]
+    restart: unless-stopped
+
+  extractor-svc:
+    build:
+      context: .
+      dockerfile: ./services/extractor/Dockerfile
+    container_name: lastroseo-extractor
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_USER=lastroseo
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=lastroseo
+      - REDIS_ADDR=redis:6379
+      - OLLAMA_URL=http://172.17.0.1:11434
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    profiles: ["app"]
+    restart: unless-stopped
+
+  analytics-svc:
+    build:
+      context: .
+      dockerfile: ./services/analytics/Dockerfile
+    container_name: lastroseo-analytics
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    dns:
+      - 8.8.8.8
+      - 1.1.1.1
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_USER=lastroseo
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=lastroseo
+      - REDIS_ADDR=redis:6379
+      - OLLAMA_URL=http://172.17.0.1:11434
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    profiles: ["app"]
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:

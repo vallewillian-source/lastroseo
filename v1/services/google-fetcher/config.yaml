@@ -1,0 +1,30 @@
+# Google Fetcher Configuration
+postgres:
+  host: "localhost"
+  port: 5432
+  user: "lastroseo"
+  password: "secret"
+  dbname: "lastroseo"
+
+redis:
+  addr: "localhost:6379"
+  db: 0
+
+google_ads:
+  developer_token: ""
+  client_id: ""
+  client_secret: ""
+  refresh_token: ""
+  customer_id: ""
+  rate_limit: 15       # req/min per customer
+
+google_trends:
+  enabled: true
+  proxy: ""
+
+google_autocomplete:
+  endpoint: "http://suggestqueries.google.com/complete/search"
+
+cache:
+  l1_ttl_seconds: 3600
+  l2_ttl_seconds: 86400

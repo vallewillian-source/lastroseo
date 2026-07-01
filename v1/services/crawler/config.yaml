@@ -1,0 +1,19 @@
+# SERP Crawler Configuration
+postgres:
+  host: "localhost"
+  user: "lastroseo"
+  password: "secret"
+  dbname: "lastroseo"
+
+redis:
+  addr: "localhost:6379"
+
+searxng:
+  url: "http://localhost:8080"
+
+worker_pool:
+  num_workers: 10
+  job_queue_size: 1000
+
+rate_limit:
+  requests_per_minute: 30
